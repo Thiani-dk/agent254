@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+  <h2>Decrypted Message</h2>
+  <div class="form-group">
+    <textarea class="ciphertext-box" readonly>{{ plaintext }}</textarea>
+    <button class="copy-btn" onclick="copyToClipboard(`{{ plaintext }}`)">
+      Copy Plaintext
+    </button>
+  </div>
+  <p><small>This message is shown only once and then deleted. Thank you for using Agent254.</small></p>
+</div>
+{% endblock %}

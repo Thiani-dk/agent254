@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Agent254</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="{{ url_for('main.compose') }}" class="nav-logo">Agent254</a>
+      <ul class="nav-menu">
+        {% if current_user.is_authenticated %}
+          <li>
+            <a href="{{ url_for('main.compose') }}">Compose</a>
+          </li>
+          <li>
+            <a href="{{ url_for('main.retrieve') }}">Retrieve</a>
+            {% if unread_count > 0 %}
+              <span class="badge">{{ unread_count }}</span>
+            {% endif %}
+          </li>
+          <li>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+          </li>
+        {% else %}
+          <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+          <li><a href="{{ url_for('auth.register') }}">Register</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <p>&copy; {{ current_year }} Agent254. All rights reserved.</p>
+  </footer>
+</body>
+</html>
