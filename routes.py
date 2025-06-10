@@ -11,7 +11,10 @@ from datetime import datetime, timedelta
 from flask_login import login_required, current_user
 
 main_bp = Blueprint("main", __name__, template_folder="templates")
-
+@main_bp.route("/")
+def home():
+    # Render a choice page with two buttons
+    return render_template("home.html")
 #
 # 1) Chat-with-Friends: no automated email
 #

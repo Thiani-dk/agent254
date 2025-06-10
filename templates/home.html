@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="form-container" style="text-align: center;">
+    <h2>Welcome to Agent254</h2>
+    <p>Please choose your flow:</p>
+    <div style="margin-top: 2rem;">
+      <a href="{{ url_for('main.compose_friend') }}" class="big-button">Chat with Friends</a>
+      <a href="{{ url_for('main.compose_colleague') }}" class="big-button">Chat with Colleagues</a>
+    </div>
+  </div>
+{% endblock %}

@@ -8,9 +8,15 @@
       <input type="text" name="message_id" id="message_id" placeholder="Enter Message ID" required>
     </div>
     <div class="form-group">
-      <label for="otp">OTP Code</label>
-      <input type="text" name="otp" id="otp" placeholder="6-digit OTP" pattern="\d{6}" required>
-    </div>
+   <label for="otp">OTP Code (hex)</label>
+   <input type="text"
+          name="otp"
+          id="otp"
+          placeholder="6-character OTP (0–9, A–F)"
+          pattern="[0-9A-Fa-f]{6}"
+          title="Enter the 6-character hexadecimal OTP (0–9 or A–F)"
+          required>
+ </div>
     <button type="submit" class="red">Decrypt &amp; View</button>
   </form>
 </div>

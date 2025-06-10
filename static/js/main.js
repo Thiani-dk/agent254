@@ -23,14 +23,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Validate OTP field on retrieve page
-    const otpInput = document.getElementById("otp");
+     const otpInput = document.getElementById("otp");
     if (otpInput) {
         otpInput.addEventListener("input", () => {
-            if (!/^\d{6}$/.test(otpInput.value.trim())) {
-                otpInput.setCustomValidity("OTP must be exactly 6 digits.");
+            // Allow exactly 6 hexadecimal characters (0–9, A–F)
+            if (!/^[0-9A-Fa-f]{6}$/.test(otpInput.value.trim())) {
+                otpInput.setCustomValidity("OTP must be exactly 6 hexadecimal characters (0–9, A–F).");
             } else {
                 otpInput.setCustomValidity("");
             }
         });
-    }
+}
 });
