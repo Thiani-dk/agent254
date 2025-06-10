@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+  <h2>Message Encrypted & OTP Sent (Colleagues)</h2>
+
+  <p><strong>Recipient:</strong> {{ recipient_email }}</p>
+  <p>Your Message ID: <strong>{{ message_id }}</strong></p>
+  <p><strong>OTP:</strong> <code>{{ otp_code }}</code></p>
+  <p><small>OTP expires in {{ expiry_seconds }} seconds.</small></p>
+
+  <p>OTP Expires In:
+    <span id="countdown">
+      {{ (expiry_seconds // 60) }}:{% if (expiry_seconds % 60) < 10 %}0{% endif %}{{ expiry_seconds % 60 }}
+    </span>
+  </p>
+
+  <div class="form-group">
+    <textarea class="ciphertext-box" readonly>{{ message_id }}</textarea>
+    <button class="copy-btn" onclick="copyToClipboard('{{ message_id }}')">
+      Copy Message ID
+    </button>
+  </div>
+
+  <p>An email has been automatically sent to <strong>{{ recipient_email }}</strong> containing the “Retrieve” link, Message ID & OTP. </p>
+  <p><em>If you’d like, you can also copy and paste the OTP & Message ID manually:</em></p>
+  <ul>
+    <li>Retrieve link: {{ url_for('main.retrieve', _external=True) }}</li>
+    <li>Message ID: <code>{{ message_id }}</code></li>
+    <li>OTP: <code>{{ otp_code }}</code></li>
+  </ul>
+</div>
+
+<script>
+(function() {
+  let remaining = {{ expiry_seconds }};
+  const countdownElem = document.getElementById("countdown");
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? "0"+s : s}`;
+  }
+
+  function tick() {
+    if (remaining <= 0) {
+      countdownElem.textContent = "OTP Expired";
+      countdownElem.style.color = "#E10600";
+      return;
+    }
+    countdownElem.textContent = formatTime(remaining);
+    remaining--;
+    setTimeout(tick, 1000);
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    tick();
+  });
+})();
+</script>
+{% endblock %}

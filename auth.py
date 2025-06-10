@@ -23,6 +23,7 @@ def register():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
+
         flash("Registration successful—please log in.", "success")
         return redirect(url_for("auth.login"))
 
@@ -37,7 +38,7 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             next_page = request.args.get("next")
-            return redirect(next_page or url_for("main.compose"))
+            return redirect(next_page or url_for("main.compose_friend"))
         flash("Invalid credentials.", "error")
         return redirect(url_for("auth.login"))
 

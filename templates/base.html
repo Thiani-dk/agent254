@@ -10,21 +10,20 @@
 <body>
   <nav class="navbar">
     <div class="nav-container">
-      <a href="{{ url_for('main.compose') }}" class="nav-logo">Agent254</a>
+      <a href="{{ url_for('main.compose_friend') }}" class="nav-logo">Agent254</a>
       <ul class="nav-menu">
         {% if current_user.is_authenticated %}
+          <li><a href="{{ url_for('main.compose_friend') }}">Chat Friends</a></li>
+          <li><a href="{{ url_for('main.compose_colleague') }}">Chat Colleagues</a></li>
           <li>
-            <a href="{{ url_for('main.compose') }}">Compose</a>
+            <a href="{{ url_for('main.retrieve') }}">
+              Retrieve
+              {% if unread_count and unread_count > 0 %}
+                <span class="badge">{{ unread_count }}</span>
+              {% endif %}
+            </a>
           </li>
-          <li>
-            <a href="{{ url_for('main.retrieve') }}">Retrieve</a>
-            {% if unread_count > 0 %}
-              <span class="badge">{{ unread_count }}</span>
-            {% endif %}
-          </li>
-          <li>
-            <a href="{{ url_for('auth.logout') }}">Logout</a>
-          </li>
+          <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
         {% else %}
           <li><a href="{{ url_for('auth.login') }}">Login</a></li>
           <li><a href="{{ url_for('auth.register') }}">Register</a></li>

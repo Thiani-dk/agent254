@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="form-container">
-  <h2>Compose Secure Message</h2>
-  <form method="POST" action="{{ url_for('main.compose') }}">
+  <h2>Chat With Colleagues (Auto Email)</h2>
+  <form method="POST" action="{{ url_for('main.compose_colleague') }}">
     <div class="form-group">
       <label for="plaintext">Your Message</label>
       <textarea name="plaintext" id="plaintext" rows="5"
                 placeholder="Enter your plaintext here..." required></textarea>
     </div>
     <div class="form-group">
-      <label for="recipient_email">Recipient Email</label>
+      <label for="recipient_email">Recipient’s Email</label>
       <input type="email" name="recipient_email" id="recipient_email"
-             placeholder="user@company.com" required>
+             placeholder="colleague@company.com" required>
     </div>
     <div class="form-group">
       <label for="expiry">OTP Validity Period</label>
@@ -22,7 +22,7 @@
         <option value="86400" selected>24 hours</option>
       </select>
     </div>
-    <button type="submit">Encrypt &amp; Send OTP</button>
+    <button type="submit">Encrypt & Send OTP</button>
   </form>
 </div>
 {% endblock %}

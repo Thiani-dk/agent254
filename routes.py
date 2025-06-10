@@ -10,34 +10,23 @@ from email_utils import send_otp_email
 from datetime import datetime, timedelta
 from flask_login import login_required, current_user
 
-# RQ / Redis imports for background email sending
-from redis import Redis
-from rq import Queue
-from tasks import queue_send_email  # task that simply calls send_otp_email()
+main_bp = Blueprint("main", __name__, template_folder="templates")
 
-# Initialize Redis connection and RQ queue
-redis_conn = Redis()  # adjust parameters if your Redis is not on localhost:6379
-q = Queue(connection=redis_conn)
-
-main_bp = Blueprint("main", __name__)
-
-@main_bp.route("/")
-def index():
-    return redirect(url_for("main.compose"))
-
-@main_bp.route("/compose", methods=["GET", "POST"])
+#
+# 1) Chat-with-Friends: no automated email
+#
+@main_bp.route("/compose/friend", methods=["GET", "POST"])
 @login_required
-def compose():
+def compose_friend():
     if request.method == "POST":
         plaintext = request.form.get("plaintext", "").strip().encode("utf-8")
-        recipient_email = request.form.get("recipient_email", "").strip().lower()
         expiry_seconds = int(request.form.get("expiry", "86400"))  # default 24h
 
-        if not plaintext or not recipient_email:
-            flash("Message and recipient email are required.", "error")
-            return redirect(url_for("main.compose"))
+        if not plaintext:
+            flash("Message cannot be empty.", "error")
+            return redirect(url_for("main.compose_friend"))
 
-        # Generate AES key + encrypt
+        # Generate AES key & encrypt
         key = generate_aes_key()
         iv, ciphertext = encrypt_aes(plaintext, key)
 
@@ -48,10 +37,73 @@ def compose():
         # Unique Message ID
         message_id = binascii.hexlify(os.urandom(8)).decode("utf-8")
 
-        # Set expiry timestamp
+        # Expiry timestamp
         expires_at = datetime.utcnow() + timedelta(seconds=expiry_seconds)
 
-        # Store in DB
+        # Save in DB, auto_sent=False (friend flow)
+        otp_hmac = derive_otp(key, salt)
+        msg = Message(
+            message_id=message_id,
+            ciphertext=ciphertext,
+            iv=iv,
+            aes_key=key,
+            otp_hash=otp_hmac,
+            recipient_email=current_user.email,  # store the sender’s own email for reference
+            auto_sent=False,
+            expires_at=expires_at
+        )
+        db.session.add(msg)
+        db.session.commit()
+
+        # Render a “sent_friend” page where we display OTP + Message ID + retrieve link
+        return render_template(
+            "sent_friend.html",
+            message_id=message_id,
+            otp_code=otp_code,
+            expiry_seconds=expiry_seconds
+        )
+
+    return render_template("compose_friend.html")
+
+
+#
+# 2) Chat-with-Colleagues: automated email
+#
+@main_bp.route("/compose/colleague", methods=["GET", "POST"])
+@login_required
+def compose_colleague():
+    if request.method == "POST":
+        plaintext = request.form.get("plaintext", "").strip().encode("utf-8")
+        recipient_email = request.form.get("recipient_email", "").strip().lower()
+        expiry_seconds = int(request.form.get("expiry", "86400"))
+
+        if not plaintext or not recipient_email:
+            flash("Message and recipient email are required.", "error")
+            return redirect(url_for("main.compose_colleague"))
+
+        # ─── Domain enforcement for colleagues ────────────────────────────────
+        # Only auto-email if both sender and recipient share the @strathmore.edu domain
+        sender = current_user.email.lower()
+        if not (sender.endswith("@strathmore.edu") and recipient_email.endswith("@strathmore.edu")):
+            flash("Colleague flow requires both emails end in @strathmore.edu.", "error")
+            return redirect(url_for("main.compose_colleague"))
+        # ─────────────────────────────────────────────────────────────────────
+
+        # Generate AES key & encrypt
+        key = generate_aes_key()
+        iv, ciphertext = encrypt_aes(plaintext, key)
+
+        # Derive OTP
+        salt = current_app.config["OTP_SALT"].encode("utf-8")
+        otp_code = derive_otp(key, salt)
+
+        # Unique Message ID
+        message_id = binascii.hexlify(os.urandom(8)).decode("utf-8")
+
+        # Expiry timestamp
+        expires_at = datetime.utcnow() + timedelta(seconds=expiry_seconds)
+
+        # Save in DB, auto_sent=True
         otp_hmac = derive_otp(key, salt)
         msg = Message(
             message_id=message_id,
@@ -60,25 +112,43 @@ def compose():
             aes_key=key,
             otp_hash=otp_hmac,
             recipient_email=recipient_email,
+            auto_sent=True,
             expires_at=expires_at
         )
         db.session.add(msg)
         db.session.commit()
 
-        # Enqueue OTP‐email sending to a background worker (RQ)
-        q.enqueue(queue_send_email, recipient_email, otp_code, expiry_seconds)
+        # Send OTP email synchronously
+        # Send OTP via email
+        success = send_otp_email(
+            recipient_email,
+            otp_code,
+            expiry_seconds,
+            sender_email=sender
+        )
+        
+        if not send_success:
+            flash("Failed to send OTP email. Please try again.", "error")
+            # Roll back the DB entry so coworker cannot retrieve
+            db.session.delete(msg)
+            db.session.commit()
+            return redirect(url_for("main.compose_colleague"))
 
-        # Render sent.html with OTP and expiry info
+        # Render “sent_colleague.html” confirming on-screen
         return render_template(
-            "sent.html",
+            "sent_colleague.html",
             message_id=message_id,
             otp_code=otp_code,
-            expiry_seconds=expiry_seconds
+            expiry_seconds=expiry_seconds,
+            recipient_email=recipient_email
         )
 
-    return render_template("compose.html")
+    return render_template("compose_colleague.html")
 
 
+#
+# 3) Common “Retrieve” page (for both flows)
+#
 @main_bp.route("/retrieve", methods=["GET", "POST"])
 @login_required
 def retrieve():
@@ -95,10 +165,11 @@ def retrieve():
             flash("Invalid Message ID.", "error")
             return redirect(url_for("main.retrieve"))
 
-        # Ensure the logged-in user is the intended recipient
-        if msg.recipient_email.lower() != current_user.email.lower():
-            flash("You are not authorized to retrieve this message.", "error")
-            return redirect(url_for("main.retrieve"))
+        # If this was a colleague-flow, ensure the logged-in user is intended recipient
+        if msg.auto_sent:
+            if msg.recipient_email.lower() != current_user.email.lower():
+                flash("You are not authorized to retrieve this message.", "error")
+                return redirect(url_for("main.retrieve"))
 
         # Check expiry
         now = datetime.utcnow()
@@ -120,7 +191,7 @@ def retrieve():
             flash("Failed to decrypt. Data may be corrupted.", "error")
             return redirect(url_for("main.retrieve"))
 
-        # Delete after retrieval
+        # On successful retrieval, delete it so it cannot be used again
         db.session.delete(msg)
         db.session.commit()
 
