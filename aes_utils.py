@@ -28,5 +28,7 @@ def derive_otp(key: bytes, salt: bytes) -> str:
     then take the first 6 digits of its hex digest.
     """
     hm = hmac.new(salt, key, hashlib.sha256).hexdigest()
-    # Return first 6 hex characters
-    return hm[:6]
+    
+    # --- BUG FIX: Case Sensitivity ---
+    # Return first 6 hex characters in UPPERCASE for consistency.
+    return hm[:6].upper()

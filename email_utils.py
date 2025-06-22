@@ -1,79 +1,115 @@
 # email_utils.py
-
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from flask import current_app
 from datetime import datetime
 
-def send_otp_email(recipient_email: str, otp_code: str, expiry_seconds: int, sender_email: str = None):
+import smtplib
+from email.message import EmailMessage
+import os
+from flask import current_app
+
+def send_otp_email(
+    *,
+    to_address: str,
+    message_id: str,
+    otp_code: str,
+    expiry_seconds: int,
+    sender: str = None,
+    link: str = None
+) -> bool:
     """
-    Sends an OTP email synchronously. Returns True on success, False on failure.
-    The email body will include:
-      • Sender’s email
-      • “Retrieve” link
-      • Message ID & OTP
-      • Expiry period
+    Sends a formatted HTML email via SMTP (credentials from env).
     """
+    cfg = {
+        "host": os.getenv("MAIL_SERVER"),
+        "port": int(os.getenv("MAIL_PORT", 587)),
+        "username": os.getenv("MAIL_USERNAME"),
+        "password": os.getenv("MAIL_PASSWORD"),
+        "use_tls": os.getenv("MAIL_USE_TLS", "true").lower() in ("1", "true", "yes"),
+    }
+
+    if not all([cfg["host"], cfg["port"], cfg["username"], cfg["password"]]):
+        current_app.logger.error("Email configuration is incomplete. Cannot send email.")
+        return False
+
+    msg = EmailMessage()
+    msg["From"] = f"Agent254 Secure Messaging <{cfg['username']}>"
+    msg["To"] = to_address
+    msg["Subject"] = f"A Secure Message was sent to you from {sender}"
+    if sender:
+        msg["Reply-To"] = sender
+
+    # Create the beautiful HTML body
+    html_body = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Message Notification</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td align="center">
+                <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                    <tr>
+                        <td align="center" style="padding: 20px; background-color: #0d6efd; color: #ffffff;">
+                            <h1 style="margin: 0; font-size: 24px;">Agent254</h1>
+                            <p style="margin: 5px 0 0; font-size: 16px;">Secure Message Notification</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 30px;">
+                            <h2 style="font-size: 20px; color: #333;">You've Received a Secure Message</h2>
+                            <p style="font-size: 16px; line-height: 1.6;">
+                                You have received a secure, encrypted message from <strong>{sender or 'an Agent254 user'}</strong>.
+                                For your security, the message content is never sent via email.
+                            </p>
+                            <p style="font-size: 16px; line-height: 1.6;">
+                                To view your message, you will need the following credentials:
+                            </p>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 20px 0; border: 1px dashed #cccccc; padding: 15px; border-radius: 5px;">
+                                <tr>
+                                    <td style="font-size: 16px;"><strong>Message ID:</strong></td>
+                                    <td style="font-size: 16px; font-family: 'Courier New', Courier, monospace; background-color: #f0f0f0; padding: 5px 10px; border-radius: 4px;">{message_id}</td>
+                                </tr>
+                                <tr><td style="height: 10px;"></td></tr>
+                                <tr>
+                                    <td style="font-size: 16px;"><strong>One-Time Password (OTP):</strong></td>
+                                    <td style="font-size: 16px; font-family: 'Courier New', Courier, monospace; background-color: #f0f0f0; padding: 5px 10px; border-radius: 4px;">{otp_code}</td>
+                                </tr>
+                            </table>
+                            <p align="center" style="margin: 30px 0;">
+                                <a href="{link}" target="_blank" style="background-color: #0d6efd; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold;">Decrypt & View Message</a>
+                            </p>
+                            <p style="font-size: 14px; color: #888; text-align: center;">
+                                This link and OTP will expire in approximately {expiry_seconds // 60} minutes.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 20px; text-align: center; background-color: #f4f7f6; font-size: 12px; color: #888;">
+                            <p style="margin: 0;">If you were not expecting this message, please disregard this email.</p>
+                            <p style="margin: 5px 0 0;">&copy; {datetime.now().year} Agent254. All Rights Reserved.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    """
+    msg.set_content("A secure message has been sent to you. Please use an HTML-compatible email client to view the instructions.")
+    msg.add_alternative(html_body, subtype="html")
+
     try:
-        app = current_app._get_current_object()
-        mail_server = app.config["MAIL_SERVER"]
-        mail_port = app.config["MAIL_PORT"]
-        mail_username = app.config["MAIL_USERNAME"]
-        mail_password = app.config["MAIL_PASSWORD"]
-        use_tls = app.config["MAIL_USE_TLS"]
-
-        # Determine “from” address
-        from_addr = mail_username
-        if sender_email:
-            # If we want to explicitly show “sender” in body, we include it in message text.
-            # But actual SMTP from‐address must be mail_username (for authentication).
-            pass
-
-        # Compose message
-        msg = MIMEMultipart()
-        msg["From"] = from_addr
-        msg["To"] = recipient_email
-        msg["Subject"] = "Agent254: Your One-Time Password (OTP) & Retrieve Link"
-
-        retrieve_link = f"{app.config.get('BASE_URL', '')}/retrieve"
-        #   If you deploy under some domain, set BASE_URL in environment (e.g. https://agent254.yourdomain.com)
-
-        body = f"""
-Hello,
-
-You have received a secure message through Agent254.
-
-Sender’s email: {sender_email or 'Unknown Sender'}
-
-To decrypt the message:
-  1. Visit: {retrieve_link}
-  2. Enter the following:
-
-     • Message ID: <YOUR MESSAGE ID HERE—you’ll receive that separately>  
-     • OTP: {otp_code}
-
-The OTP and Message ID do not appear in this email (they were sent separately by your colleague).
-If you do not have the Message ID, ask your sender to forward it.
-
-OTP expires in {expiry_seconds} seconds (until {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')} + {expiry_seconds} s).
-
-Thank you,
-Agent254 Bot
-"""
-        msg.attach(MIMEText(body, "plain"))
-
-        # Connect to SMTP
-        server = smtplib.SMTP(mail_server, mail_port, timeout=10)
-        if use_tls:
-            server.starttls()
-        server.login(mail_username, mail_password)
-        server.send_message(msg)
-        server.quit()
-
+        with smtplib.SMTP(cfg["host"], cfg["port"]) as server:
+            if cfg["use_tls"]:
+                server.starttls()
+            server.login(cfg["username"], cfg["password"])
+            server.send_message(msg)
+        current_app.logger.info(f"OTP email sent successfully to {to_address}")
         return True
-
     except Exception as e:
-        # Log failure
-        print(f"[email_utils] Failed to send OTP email: {e}")
+        current_app.logger.error(f"Failed to send email to {to_address}: {e}")
         return False

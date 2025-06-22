@@ -1,61 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="form-container">
-  <h2>Message Encrypted (Friends)</h2>
+<div class="card text-center">
+  <h2><i class="fas fa-check-circle" style="color: var(--success-color);"></i> Message Encrypted!</h2>
+  <p>Securely share the following details with your friend.</p>
 
-  <p>Your Message ID: <strong>{{ message_id }}</strong></p>
-  <p><strong>OTP:</strong> <code>{{ otp_code }}</code></p>
-  <p><small>OTP expires in {{ expiry_seconds }} seconds.</small></p>
-
-  <p>OTP Expires In:
-    <span id="countdown">
-      {{ (expiry_seconds // 60) }}:{% if (expiry_seconds % 60) < 10 %}0{% endif %}{{ expiry_seconds % 60 }}
-    </span>
-  </p>
-
-  <div class="form-group">
-    <textarea class="ciphertext-box" readonly>{{ message_id }}</textarea>
-    <button class="copy-btn" onclick="copyToClipboard('{{ message_id }}')">
-      Copy Message ID
-    </button>
+  <div class="form-group" style="text-align: left; margin-top: 2rem;">
+    <label>Message ID</label>
+    <div class="copy-group">
+      <input type="text" class="form-control monospace" value="{{ message_id }}" readonly>
+      <button class="copy-btn" onclick="copyToClipboard(this, '{{ message_id }}')">Copy</button>
+    </div>
   </div>
 
-  <p>
-    Manually share (via WhatsApp/Instagram/Email/etc.) the FOLLOWING to your friend:
-    <ul>
-      <li>“Retrieve” link: {{ url_for('main.retrieve', _external=True) }}</li>
-      <li>Message ID: <code>{{ message_id }}</code></li>
-      <li>OTP: <code>{{ otp_code }}</code></li>
-    </ul>
+  <div class="form-group" style="text-align: left;">
+    <label>One-Time Password (OTP)</label>
+    <div class="copy-group">
+      <input type="text" class="form-control monospace" value="{{ otp_code }}" readonly>
+      <button class="copy-btn" onclick="copyToClipboard(this, '{{ otp_code }}')">Copy</button>
+    </div>
+  </div>
+
+  <div class="form-group" style="text-align: left;">
+      <label>Retrieval Link</label>
+      <div class="copy-group">
+        <input type="text" class="form-control" value="{{ url_for('main.retrieve', _external=True) }}" readonly>
+        <button class="copy-btn" onclick="copyToClipboard(this, '{{ url_for('main.retrieve', _external=True) }}')">Copy</button>
+      </div>
+  </div>
+
+  <p class="mt-2">
+    <a href="{{ url_for('main.compose_friend') }}" class="btn btn-secondary">Compose Another Message</a>
   </p>
-  <p><em>Note: As this is the “Chat-with-Friends” flow, you must copy + paste those three into any channel of your choice.</em></p>
 </div>
-
-<script>
-(function() {
-  let remaining = {{ expiry_seconds }};
-  const countdownElem = document.getElementById("countdown");
-
-  function formatTime(sec) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}:${s < 10 ? "0"+s : s}`;
-  }
-
-  function tick() {
-    if (remaining <= 0) {
-      countdownElem.textContent = "OTP Expired";
-      countdownElem.style.color = "#E10600";
-      return;
-    }
-    countdownElem.textContent = formatTime(remaining);
-    remaining--;
-    setTimeout(tick, 1000);
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    tick();
-  });
-})();
-</script>
 {% endblock %}

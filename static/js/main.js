@@ -1,13 +1,20 @@
 // static/js/main.js
 
-// Copy a given string to the clipboard
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text)
-        .then(() => alert("Copied to clipboard!"))
-        .catch(err => alert("Failed to copy: " + err));
+function copyToClipboard(element, textToCopy) {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const originalText = element.innerText;
+        element.innerText = 'Copied!';
+        element.disabled = true;
+        setTimeout(() => {
+            element.innerText = originalText;
+            element.disabled = false;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+        alert('Failed to copy text.');
+    });
 }
 
-// Form validation helpers
 document.addEventListener("DOMContentLoaded", () => {
     // Validate recipient email on compose page
     const emailInput = document.getElementById("recipient_email");
@@ -15,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
         emailInput.addEventListener("input", () => {
             const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!re.test(emailInput.value.trim())) {
-                emailInput.setCustomValidity("Enter a valid email address.");
+                emailInput.setCustomValidity("Please enter a valid email address.");
             } else {
                 emailInput.setCustomValidity("");
             }
@@ -23,15 +30,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Validate OTP field on retrieve page
-     const otpInput = document.getElementById("otp");
+    const otpInput = document.getElementById("otp");
     if (otpInput) {
         otpInput.addEventListener("input", () => {
-            // Allow exactly 6 hexadecimal characters (0–9, A–F)
-            if (!/^[0-9A-Fa-f]{6}$/.test(otpInput.value.trim())) {
-                otpInput.setCustomValidity("OTP must be exactly 6 hexadecimal characters (0–9, A–F).");
+            const otpValue = otpInput.value.trim();
+            otpInput.value = otpValue.toUpperCase(); // Force uppercase for consistency
+            if (!/^[0-9A-F]{6}$/.test(otpValue)) {
+                otpInput.setCustomValidity("OTP must be exactly 6 hexadecimal characters (0-9, A-F).");
             } else {
                 otpInput.setCustomValidity("");
             }
         });
-}
+    }
 });

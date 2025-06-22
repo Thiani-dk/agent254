@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="form-container">
+<div class="card">
   <h2>Chat With Friends (Manual Handoff)</h2>
-  <form method="POST" action="{{ url_for('main.compose_friend') }}">
+  <form method="POST">
     <div class="form-group">
-      <label for="plaintext">Your Message</label>
-      <textarea name="plaintext" id="plaintext" rows="5"
-                placeholder="Enter your plaintext here..." required></textarea>
+      <label for="plaintext">Your Secret Message</label>
+      <textarea name="plaintext" id="plaintext" class="form-control" rows="6" required placeholder="Type your secure message here..."></textarea>
     </div>
     <div class="form-group">
-      <label for="expiry">OTP Validity Period</label>
-      <select name="expiry" id="expiry">
-        <option value="24">24 seconds</option>
-        <option value="254">254 seconds</option>
-        <option value="1440">24 minutes</option>
-        <option value="86400" selected>24 hours</option>
+      <label for="expiry">Message Expiration</label>
+      <select name="expiry" id="expiry" class="form-control">
+        <option value="300">5 Minutes</option>
+        <option value="3600">1 Hour</option>
+        <option value="86400" selected>24 Hours</option>
+        <option value="604800">7 Days</option>
       </select>
+      <small style="display: block; margin-top: 5px; color: var(--secondary-color);">Message will self-destruct after this time or upon first view.</small>
     </div>
-    <button type="submit">Encrypt</button>
+    <button type="submit" class="btn btn-primary"><i class="fas fa-lock"></i> Encrypt Message</button>
   </form>
 </div>
 {% endblock %}

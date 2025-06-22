@@ -1,28 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="form-container">
-  <h2>Chat With Colleagues (Auto Email)</h2>
-  <form method="POST" action="{{ url_for('main.compose_colleague') }}">
+<div class="card">
+  <h2>Chat with Colleagues (Automated Handoff)</h2>
+  <form method="POST">
     <div class="form-group">
-      <label for="plaintext">Your Message</label>
-      <textarea name="plaintext" id="plaintext" rows="5"
-                placeholder="Enter your plaintext here..." required></textarea>
+      <label for="plaintext">Your Secret Message</label>
+      <textarea name="plaintext" id="plaintext" class="form-control" rows="6" required placeholder="Type your secure message here..."></textarea>
     </div>
     <div class="form-group">
-      <label for="recipient_email">Recipient’s Email</label>
-      <input type="email" name="recipient_email" id="recipient_email"
-             placeholder="colleague@company.com" required>
+      <label for="recipient_email">Recipient's Email Address</label>
+      <input type="email" name="recipient_email" id="recipient_email" class="form-control" required placeholder="colleague@your-organization.com">
     </div>
     <div class="form-group">
-      <label for="expiry">OTP Validity Period</label>
-      <select name="expiry" id="expiry">
-        <option value="24">24 seconds</option>
-        <option value="254">254 seconds</option>
-        <option value="1440">24 minutes</option>
-        <option value="86400" selected>24 hours</option>
+      <label for="expiry">Message Expiration</label>
+      <select name="expiry" id="expiry" class="form-control">
+        <option value="300">5 Minutes</option>
+        <option value="3600">1 Hour</option>
+        <option value="86400" selected>24 Hours</option>
+        <option value="604800">7 Days</option>
       </select>
     </div>
-    <button type="submit">Encrypt & Send OTP</button>
+    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Encrypt & Send Email</button>
   </form>
 </div>
 {% endblock %}

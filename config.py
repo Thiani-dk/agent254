@@ -1,29 +1,21 @@
-# config.py
-
 import os
 from dotenv import load_dotenv
-from pathlib import Path
 
-# Load environment variables from a .env file (in project root)
-basedir = Path(__file__).resolve().parent
-load_dotenv(basedir / ".env")
+load_dotenv()
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "change_this_to_a_random_string")
-    SQLALCHEMY_DATABASE_URI = (
-        "sqlite:///" + os.path.join(basedir, "messages.db")
-    )
+    SECRET_KEY      = os.getenv("SECRET_KEY", "dev-key")
+    OTP_SALT        = os.getenv("OTP_SALT", "change-this-salt")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///messages.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Flask-Login
-    # (no explicit config needed here; just will initialize LoginManager in app.py)
+    # Comma-separated list, e.g. "strathmore.edu,acme.com"
+    ALLOWED_ORGS = {d.strip() for d in os.getenv("ALLOWED_ORGS", "").split(",") if d.strip()}
 
-    # SMTP / Email configuration
-    MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
-    MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
-    MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "true").lower() in ("true", "1", "yes")
-    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "")  # your SMTP username (e.g. app-specific Gmail address)
-    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")  # your SMTP password or app-password
-
-    # OTP salt
-    OTP_SALT = os.environ.get("OTP_SALT", "change_this_to_a_random_salt")
+    # SMTP settings...
+    MAIL_SERVER   = os.getenv("MAIL_SERVER", "")
+    MAIL_PORT     = int(os.getenv("MAIL_PORT", 0))
+    MAIL_USE_TLS  = os.getenv("MAIL_USE_TLS", "false").lower() in ("1","true")
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
+    BASE_URL      = os.getenv("BASE_URL", "http://localhost:5000")

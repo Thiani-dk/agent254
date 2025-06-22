@@ -1,52 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Agent254</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent254 - Secure Messenger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="{{ url_for('main.compose_friend') }}" class="nav-logo">Agent254</a>
-      <ul class="nav-menu">
-        {% if current_user.is_authenticated %}
-          <li><a href="{{ url_for('main.compose_friend') }}">Chat Friends</a></li>
-          <li><a href="{{ url_for('main.compose_colleague') }}">Chat Colleagues</a></li>
-          <li>
-            <a href="{{ url_for('main.retrieve') }}">
-              Retrieve
-              {% if unread_count and unread_count > 0 %}
-                <span class="badge">{{ unread_count }}</span>
-              {% endif %}
-            </a>
-          </li>
-          <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-        {% else %}
-          <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-          <li><a href="{{ url_for('auth.register') }}">Register</a></li>
-        {% endif %}
-      </ul>
-    </div>
-  </nav>
 
-  <main class="main-content">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-container">
-          {% for category, msg in messages %}
-            <div class="flash {{ category }}">{{ msg }}</div>
-          {% endfor %}
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('main.home') }}" class="nav-logo">Agent254</a>
+            <ul class="nav-menu">
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('main.compose_friend') }}">Chat Friends</a></li>
+                    <li><a href="{{ url_for('main.compose_colleague') }}">Chat Colleagues</a></li>
+                    <li>
+                        <a href="{{ url_for('main.retrieve') }}">
+                            Retrieve
+                            {% if unread_count and unread_count > 0 %}
+                                <span class="badge">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                    <li><a href="{{ url_for('auth.register') }}">Register</a></li>
+                {% endif %}
+            </ul>
         </div>
-      {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-  </main>
+    </nav>
 
-  <footer class="footer">
-    <p>&copy; {{ current_year }} Agent254. All rights reserved.</p>
-  </footer>
+    <div class="flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                <div class="flash {{ category }}">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    </div>
+
+    <main class="main-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

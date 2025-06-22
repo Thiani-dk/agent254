@@ -1,60 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="form-container">
-  <h2>Message Encrypted & OTP Sent (Colleagues)</h2>
-
-  <p><strong>Recipient:</strong> {{ recipient_email }}</p>
-  <p>Your Message ID: <strong>{{ message_id }}</strong></p>
-  <p><strong>OTP:</strong> <code>{{ otp_code }}</code></p>
-  <p><small>OTP expires in {{ expiry_seconds }} seconds.</small></p>
-
-  <p>OTP Expires In:
-    <span id="countdown">
-      {{ (expiry_seconds // 60) }}:{% if (expiry_seconds % 60) < 10 %}0{% endif %}{{ expiry_seconds % 60 }}
-    </span>
-  </p>
-
-  <div class="form-group">
-    <textarea class="ciphertext-box" readonly>{{ message_id }}</textarea>
-    <button class="copy-btn" onclick="copyToClipboard('{{ message_id }}')">
-      Copy Message ID
-    </button>
-  </div>
-
-  <p>An email has been automatically sent to <strong>{{ recipient_email }}</strong> containing the “Retrieve” link, Message ID & OTP. </p>
-  <p><em>If you’d like, you can also copy and paste the OTP & Message ID manually:</em></p>
-  <ul>
-    <li>Retrieve link: {{ url_for('main.retrieve', _external=True) }}</li>
-    <li>Message ID: <code>{{ message_id }}</code></li>
-    <li>OTP: <code>{{ otp_code }}</code></li>
-  </ul>
+<div class="card text-center">
+  <h2><i class="fas fa-envelope-circle-check" style="color: var(--success-color);"></i> Encrypted & Sent!</h2>
+  <p>An email with retrieval instructions has been sent to <strong>{{ recipient_email }}</strong>.</p>
+  <p>For your reference, the Message ID is <strong>{{ message_id }}</strong>.</p>
+  <p><small>The message will expire in approximately {{ expiry_seconds // 60 }} minutes.</small></p>
+  <a href="{{ url_for('main.compose_colleague') }}" class="btn btn-primary mt-2">Compose Another Message</a>
 </div>
-
-<script>
-(function() {
-  let remaining = {{ expiry_seconds }};
-  const countdownElem = document.getElementById("countdown");
-
-  function formatTime(sec) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}:${s < 10 ? "0"+s : s}`;
-  }
-
-  function tick() {
-    if (remaining <= 0) {
-      countdownElem.textContent = "OTP Expired";
-      countdownElem.style.color = "#E10600";
-      return;
-    }
-    countdownElem.textContent = formatTime(remaining);
-    remaining--;
-    setTimeout(tick, 1000);
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    tick();
-  });
-})();
-</script>
 {% endblock %}
