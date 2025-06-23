@@ -23,9 +23,23 @@
         <label for="email">Email Address</label>
         <input type="email" name="email" id="email" class="form-control" required placeholder="you@domain.com">
       </div>
+      
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" name="password" id="password" class="form-control" required>
+        <small style="display: block; margin-top: 8px; color: var(--secondary-color); line-height: 1.4;">
+          <b>Password must contain:</b><br>
+          &bull; At least 8 characters<br>
+          &bull; An uppercase letter (A-Z)<br>
+          &bull; A lowercase letter (a-z)<br>
+          &bull; A number (0-9)<br>
+          &bull; A special character (e.g., !@#$%)
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="password2">Confirm Password</label>
+        <input type="password" name="password2" id="password2" class="form-control" required>
       </div>
       <button type="submit" class="btn btn-primary">Register</button>
       <p class="login-footer">Already have an account? <a href="{{ url_for('auth.login') }}" class="btn-link">Log In</a></p>

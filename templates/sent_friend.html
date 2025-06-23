@@ -27,7 +27,21 @@
         <button class="copy-btn" onclick="copyToClipboard(this, '{{ url_for('main.retrieve', _external=True) }}')">Copy</button>
       </div>
   </div>
+  
+  <hr style="margin: 2rem 0; border: none; border-top: 1px solid #eee;">
 
+  <div class="form-group">
+      <button 
+          id="copyAllBtn"
+          class="btn btn-primary" 
+          style="width: auto; font-size: 1.1rem; padding: 0.8rem 1.5rem;"
+          data-message-id="{{ message_id }}"
+          data-otp="{{ otp_code }}"
+          data-link="{{ url_for('main.retrieve', _external=True) }}">
+          <i class="fas fa-clipboard"></i> Copy All to Clipboard
+      </button>
+      <p style="margin-top: 1rem;">Click the button above to copy the link, ID, and OTP together.</p>
+  </div>
   <p class="mt-2">
     <a href="{{ url_for('main.compose_friend') }}" class="btn btn-secondary">Compose Another Message</a>
   </p>
