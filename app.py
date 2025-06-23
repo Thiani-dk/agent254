@@ -3,6 +3,7 @@ from flask import Flask
 from config import Config
 from datetime import datetime
 from flask_bcrypt import Bcrypt
+from flask_migrate import Migrate
 
 # Instantiate Bcrypt here to be available for the app
 bcrypt = Bcrypt()
@@ -17,6 +18,7 @@ def create_app():
     # ---------- INITIALIZE EXTENSIONS ----------
     db.init_app(app)
     bcrypt.init_app(app)
+    migrate = Migrate(app, db)
 
     # ---------- LOGIN MANAGER ----------
     login_manager = LoginManager()
