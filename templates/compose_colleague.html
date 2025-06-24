@@ -2,7 +2,9 @@
 {% block content %}
 <div class="card">
   <h2>Chat with Colleagues (Automated Handoff)</h2>
-  <form method="POST">
+  
+  <!-- The form MUST have enctype="multipart/form-data" for file uploads -->
+  <form method="POST" enctype="multipart/form-data">
     <div class="form-group">
       <label for="plaintext">Your Secret Message</label>
       <textarea name="plaintext" id="plaintext" class="form-control" rows="6" required placeholder="Type your secure message here..."></textarea>
@@ -11,6 +13,16 @@
       <label for="recipient_email">Recipient's Email Address</label>
       <input type="email" name="recipient_email" id="recipient_email" class="form-control" required placeholder="colleague@your-organization.com">
     </div>
+
+    <!-- FEATURE: ATTACHMENT FIELD -->
+    <div class="form-group">
+        <label for="attachment">Attach File (Optional, Max 10MB)</label>
+        <input type="file" name="attachment" id="attachment" class="form-control">
+        <small style="display: block; margin-top: 5px; color: var(--secondary-color);">
+            The file will be compressed into a .zip archive before sending.
+        </small>
+    </div>
+    
     <div class="form-group">
       <label for="expiry">Message Expiration</label>
       <select name="expiry" id="expiry" class="form-control">
