@@ -1,58 +1,61 @@
-# app.py
+# agent254/app.py
+import logging # Added for logging level
+import africastalking # Corrected import for Africa's Talking SDK initialization
+from dotenv import load_dotenv # Import load_dotenv
+load_dotenv() # Call load_dotenv() at the very top to load .env variables
+
 from flask import Flask
-from config import Config
-from datetime import datetime
-from flask_bcrypt import Bcrypt
+from .extensions import db, bcrypt, login_manager, mail
+from .routes import main_bp
+from .auth import auth_bp
+from .config import Config
+from .models import User
+from flask_migrate import Migrate
 
-# Instantiate Bcrypt here to be available for the app
-bcrypt = Bcrypt()
+import os
 
-from models import db, User
-from flask_login import LoginManager
+def init_sms_sdk(app: Flask):
+    """
+    Initializes the Africa's Talking SDK with credentials from Flask's config.
+    This function is called once during app startup.
+    """
+    try:
+        africastalking.initialize( # Corrected call
+            username=app.config['AFRICASTALKING_USERNAME'],
+            api_key=app.config['AFRICASTALKING_API_KEY']
+        )
+        app.logger.info("✅ Africa’s Talking SDK initialized successfully.")
+    except KeyError as e:
+        app.logger.error(f"❌ Africa's Talking credentials missing from config: {e}. SMS functionality will be limited.")
+    except Exception as e:
+        app.logger.error(f"❌ Failed to initialize Africa's Talking SDK: {e}")
+
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # ---------- INITIALIZE EXTENSIONS ----------
+    # Set Flask logger level so info messages show up
+    app.logger.setLevel(logging.INFO)
+
     db.init_app(app)
     bcrypt.init_app(app)
-
-    # ---------- LOGIN MANAGER ----------
-    login_manager = LoginManager()
-    login_manager.login_view = "auth.login"
-    login_manager.login_message_category = "error"
-    login_manager.login_message = "You must be logged in to access this page."
     login_manager.init_app(app)
+    mail.init_app(app)
+
+    # Initialize Africa's Talking SDK within the app context
+    with app.app_context():
+        init_sms_sdk(app)
+
+    migrate = Migrate(app, db)
 
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # ---------- GLOBAL CONTEXT ----------
-    @app.context_processor
-    def inject_globals():
-        ctx = {"current_year": datetime.utcnow().year}
-        
-        # Unread badge counter for colleague flow
-        from flask_login import current_user
-        from models import Message
-        if current_user.is_authenticated:
-            unread_count = Message.query.filter(
-                Message.recipient_email == current_user.email,
-                Message.expires_at > datetime.utcnow()
-            ).count()
-            ctx["unread_count"] = unread_count
-        else:
-            ctx["unread_count"] = 0
-            
-        return ctx
-
-    # ---------- BLUEPRINTS ----------
-    from auth import auth_bp
+    app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
 
-    from routes import main_bp
-    app.register_blueprint(main_bp)
-
     return app
+
+app = create_app()

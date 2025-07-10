@@ -8,8 +8,8 @@
       <input type="text" name="message_id" id="message_id" class="form-control" placeholder="Enter Message ID" required>
     </div>
     <div class="form-group">
-      <label for="otp">One-Time Password (OTP)</label>
-      <input type="text" name="otp" id="otp" class="form-control" placeholder="6-character hex code" required pattern="[0-9A-Fa-f]{6}" maxlength="6" title="Enter the 6-character hexadecimal OTP">
+      <label for="otp_code">One-Time Password (OTP)</label> {# Input name is otp_code to match routes.py #}
+      <input type="text" name="otp_code" id="otp_code" class="form-control" placeholder="Your secret OTP" required>
     </div>
     <button type="submit" class="btn btn-danger"><i class="fas fa-lock-open"></i> Decrypt & View</button>
   </form>

@@ -1,35 +1,51 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card text-center">
-  <h2><i class="fas fa-check-circle" style="color: var(--success-color);"></i> Message Encrypted!</h2>
-  <p>Securely share the following details with your friend.</p>
+    <h2><i class="fas fa-check-circle" style="color: var(--success-color);"></i> Message Encrypted!</h2>
+    
+    {# Add clear, direct instructions for the user #}
+    <p class="manual-share-instruction">
+        <strong>Action Required:</strong> You must now manually copy and share the details below with your friend. Agent254 does not automatically send this information.
+    </p>
 
-  <div class="form-group" style="text-align: left; margin-top: 2rem;">
-    <label>Message ID</label>
-    <div class="copy-group">
-      <input type="text" class="form-control monospace" value="{{ message_id }}" readonly>
-      <button class="copy-btn" onclick="copyToClipboard(this, '{{ message_id }}')">Copy</button>
+    <div class="form-group consolidated-details-box">
+        <label for="allDetailsTextarea">All Details for Manual Handoff</label>
+        <textarea id="allDetailsTextarea" class="form-control monospace" rows="6" readonly>
+Message ID: {{ message_id }}
+One-Time Password (OTP): {{ otp_code }}
+Retrieval Link: {{ url_for('main.retrieve', _external=True) }}</textarea>
+        <small class="form-text text-muted">Copy everything in this box to share.</small>
     </div>
-  </div>
 
-  <div class="form-group" style="text-align: left;">
-    <label>One-Time Password (OTP)</label>
-    <div class="copy-group">
-      <input type="text" class="form-control monospace" value="{{ otp_code }}" readonly>
-      <button class="copy-btn" onclick="copyToClipboard(this, '{{ otp_code }}')">Copy</button>
+    <div class="button-actions mt-3">
+        <button type="button" class="btn btn-primary btn-copy-all" onclick="copyAllToClipboard()">
+            <i class="fas fa-copy"></i> Copy All to Clipboard
+        </button>
+        <div class="button-group mt-3">
+            <a href="{{ url_for('main.home') }}" class="btn btn-tertiary">Back Home</a>
+            <a href="{{ url_for('main.compose_friend') }}" class="btn btn-secondary">Compose New Message</a>
+        </div>
     </div>
-  </div>
-
-  <div class="form-group" style="text-align: left;">
-      <label>Retrieval Link</label>
-      <div class="copy-group">
-        <input type="text" class="form-control" value="{{ url_for('main.retrieve', _external=True) }}" readonly>
-        <button class="copy-btn" onclick="copyToClipboard(this, '{{ url_for('main.retrieve', _external=True) }}')">Copy</button>
-      </div>
-  </div>
-
-  <p class="mt-2">
-    <a href="{{ url_for('main.compose_friend') }}" class="btn btn-secondary">Compose Another Message</a>
-  </p>
 </div>
+
+<script>
+    function copyAllToClipboard() {
+        const allDetailsTextarea = document.getElementById('allDetailsTextarea');
+        allDetailsTextarea.select();
+        allDetailsTextarea.setSelectionRange(0, 99999); // For mobile devices
+
+        navigator.clipboard.writeText(allDetailsTextarea.value)
+            .then(() => {
+                const copyAllBtn = document.querySelector('.btn-copy-all');
+                copyAllBtn.innerHTML = '<i class="fas fa-check"></i> All Copied!';
+                setTimeout(() => {
+                    copyAllBtn.innerHTML = '<i class="fas fa-copy"></i> Copy All to Clipboard';
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Failed to copy all text: ', err);
+                alert('Failed to copy. Please copy manually from the text box.');
+            });
+    }
+</script>
 {% endblock %}

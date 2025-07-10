@@ -2,14 +2,38 @@
 {% block content %}
 <div class="card">
   <h2>Chat with Colleagues (Automated Handoff)</h2>
-  <form method="POST">
+  
+  <form method="POST" enctype="multipart/form-data">
     <div class="form-group">
-      <label for="plaintext">Your Secret Message</label>
-      <textarea name="plaintext" id="plaintext" class="form-control" rows="6" required placeholder="Type your secure message here..."></textarea>
+      <label>Choose Delivery Method:</label><br>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" id="delivery_email" name="delivery_method" value="email" checked onclick="toggleRecipientInput()">
+        <label class="form-check-label" for="delivery_email">Email</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" id="delivery_sms" name="delivery_method" value="sms" onclick="toggleRecipientInput()">
+        <label class="form-check-label" for="delivery_sms">SMS</label>
+      </div>
+      {# ADDED: Information text for SMS delivery #}
+      <small class="form-text text-muted d-block mt-1">
+          SMS delivery requires a pre-approved recipient number and a configured AfricasTalking account.
+      </small>
     </div>
+
+    <div class="form-group" id="recipient_email_field">
+        <label for="recipient_email">Recipient's Email Address</label>
+        <input type="email" name="recipient_email" id="recipient_email" class="form-control" required placeholder="colleague@your-organization.com">
+    </div>
+
+    <div class="form-group" id="recipient_phone_field" style="display:none;">
+        <label for="recipient_phone">Recipient Phone Number (e.g., +254712345678)</label>
+        <input type="tel" name="recipient_phone" id="recipient_phone" class="form-control" placeholder="+2547XXXXXXXX" pattern="^\+[1-9]\d{1,14}$" title="Phone number must be in international format, e.g., +2547XXXXXXXX" required>
+        <small class="form-text text-muted">Must be in E.164 format (e.g., +254712345678).</small>
+    </div>
+
     <div class="form-group">
-      <label for="recipient_email">Recipient's Email Address</label>
-      <input type="email" name="recipient_email" id="recipient_email" class="form-control" required placeholder="colleague@your-organization.com">
+      <label for="message_content">Your Secret Message</label>
+      <textarea name="message_content" id="message_content" class="form-control" rows="6" required placeholder="Type your secure message here..."></textarea>
     </div>
     <div class="form-group">
       <label for="expiry">Message Expiration</label>
@@ -19,8 +43,37 @@
         <option value="86400" selected>24 Hours</option>
         <option value="604800">7 Days</option>
       </select>
+      <small style="display: block; margin-top: 5px; color: var(--secondary-color);">Message will self-destruct after this time or upon first view.</small>
     </div>
-    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Encrypt & Send Email</button>
+    <div class="form-group">
+        <label for="attachment">Attach File (Optional)</label>
+        <input type="file" name="attachment" id="attachment" class="form-control">
+        <small class="form-text text-muted">Max file size might be limited by server config. This will be zipped.</small>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Encrypt & Send</button>
   </form>
 </div>
+
+<script>
+    function toggleRecipientInput() {
+        const emailField = document.getElementById('recipient_email_field');
+        const phoneField = document.getElementById('recipient_phone_field');
+        const emailInput = document.getElementById('recipient_email');
+        const phoneInput = document.getElementById('recipient_phone');
+
+        if (document.getElementById('delivery_email').checked) {
+            emailField.style.display = 'block';
+            phoneField.style.display = 'none';
+            emailInput.setAttribute('required', 'required');
+            phoneInput.removeAttribute('required');
+        } else {
+            emailField.style.display = 'none';
+            phoneField.style.display = 'block';
+            phoneInput.setAttribute('required', 'required');
+            emailInput.removeAttribute('required');
+        }
+    }
+    // Call on page load to set the initial correct state
+    document.addEventListener('DOMContentLoaded', toggleRecipientInput);
+</script>
 {% endblock %}

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Agent254 - Secure Messaging</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  </head>
+  <body class="landing-page-body">
+    <div class="landing-container">
+      <div class="landing-content">
+        <h1>Welcome to Agent254</h1>
+        <p class="tagline">Your secure communication platform. Encrypt, send, and retrieve messages with confidence.</p>
+        
+        <div class="landing-buttons">
+          <a href="{{ url_for('auth.login') }}" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-secondary"><i class="fas fa-user-plus"></i> Register</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

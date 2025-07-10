@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2 class="text-center">Decrypted Message</h2>
+  <div class="form-group">
+    <label>Message Content:</label>
+    <div class="result-box">{{ message_content }}</div> {# Changed from plaintext to message_content #}
+  </div>
+
+  {% if attachment %}
+  <div class="form-group mt-3">
+      <label>Attachment:</label>
+      <div class="result-box">
+          <p>File: <strong>{{ attachment.filename }}</strong></p>
+          <a href="{{ attachment.download_url }}" class="btn btn-secondary mt-1" download>
+            <i class="fas fa-download"></i> Download Attachment
+          </a>
+      </div>
+  </div>
+  {% endif %}
+
+  <p class="text-center" style="color: var(--danger-color); font-weight: 500; margin-top: 2rem;">
+    <i class="fas fa-fire"></i> This message has now been permanently marked as read and will expire.
+    {# The backend currently only marks as read, not deletes. Adjust message if you implement deletion immediately after retrieval. #}
+  </p>
+  <div class="text-center mt-2">
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to Home</a>
+  </div>
+</div>
+{% endblock %}
