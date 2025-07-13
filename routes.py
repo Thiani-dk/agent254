@@ -241,13 +241,15 @@ def retrieve():
                     'download_url': url_for('main.download_attachment', message_id=message.message_id)
                 }
             
+            # Delete message after successful retrieval
             db.session.delete(message)
             db.session.commit()
 
             flash('Message decrypted successfully and has been deleted!', 'success')
-            return render_template('view_message.html', 
+            # --- FIX: Corrected template name and variable name for display ---
+            return render_template('retrieve_result.html',
                                    message_id=message_id,
-                                   plaintext=decrypted_message_content,
+                                   plaintext=decrypted_message_content, # Ensure this matches your HTML
                                    attachment=attachment_data)
         except Exception as e:
             db.session.rollback()

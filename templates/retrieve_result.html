@@ -1,30 +1,51 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-  <h2 class="text-center">Decrypted Message</h2>
-  <div class="form-group">
-    <label>Message Content:</label>
-    <div class="result-box">{{ message_content }}</div> {# Changed from plaintext to message_content #}
-  </div>
+<div class="container mx-auto p-4 max-w-2xl">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Decrypted Secure Message</h2>
 
-  {% if attachment %}
-  <div class="form-group mt-3">
-      <label>Attachment:</label>
-      <div class="result-box">
-          <p>File: <strong>{{ attachment.filename }}</strong></p>
-          <a href="{{ attachment.download_url }}" class="btn btn-secondary mt-1" download>
-            <i class="fas fa-download"></i> Download Attachment
-          </a>
-      </div>
-  </div>
-  {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <div class="p-3 mb-2 rounded-md text-sm {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'danger' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-  <p class="text-center" style="color: var(--danger-color); font-weight: 500; margin-top: 2rem;">
-    <i class="fas fa-fire"></i> This message has now been permanently marked as read and will expire.
-    {# The backend currently only marks as read, not deletes. Adjust message if you implement deletion immediately after retrieval. #}
-  </p>
-  <div class="text-center mt-2">
-    <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to Home</a>
-  </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Message ID:</label>
+            <p class="bg-gray-100 p-3 rounded-md text-gray-800 break-all">{{ message_id }}</p>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Decrypted Content:</label>
+            <div class="bg-blue-50 p-4 rounded-md border border-blue-200 text-gray-800 whitespace-pre-wrap">
+                {{ plaintext }} {# Now correctly displays the 'plaintext' variable #}
+            </div>
+        </div>
+
+        {% if attachment %}
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Attachment:</label>
+            <a href="{{ attachment.download_url }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                Download: {{ attachment.filename }}
+            </a>
+            <p class="text-xs text-gray-500 mt-1">Note: Attachment is deleted after first view.</p>
+        </div>
+        {% endif %}
+
+        <p class="text-center text-red-600 font-medium mt-6">
+            <i class="fas fa-fire"></i> This message has now been permanently deleted.
+        </p>
+        <div class="text-center mt-2">
+            <a href="{{ url_for('main.home') }}" class="inline-block bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300">
+                Back to Home
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}
